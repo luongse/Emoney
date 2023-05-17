@@ -105,7 +105,8 @@ namespace ProductsApp.Controllers
             string body = JsonConvert.SerializeObject(bodyRequest);
             var result = EmoneyHelper.SendRequestToURL(urlTransfer, body, requestHeader);
 
-            return Ok(result);
+            var obj = JsonConvert.DeserializeObject<GetEmoneyTransactionResponse>(result); 
+            return Ok(obj);
 
         }
     }
