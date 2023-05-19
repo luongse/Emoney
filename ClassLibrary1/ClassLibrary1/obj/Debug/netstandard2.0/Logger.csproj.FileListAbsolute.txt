@@ -1,0 +1,6 @@
+D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\bin\Debug\netstandard2.0\Logger.deps.json
+D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\bin\Debug\netstandard2.0\Logger.dll
+D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.csprojAssemblyReference.cache
+D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.csproj.CoreCompileInputs.cache
+D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.AssemblyInfoInputs.cache
+D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.AssemblyInfo.cs

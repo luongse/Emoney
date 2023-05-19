@@ -15,15 +15,22 @@ namespace WebApplication3.WalletHelper
 
         public const string EMONEY_API_URL = "https://mg.emoney.com.kh:8686/v2";
         public const string EMONEY_API_URL_TRANSFER = "/transactions";
+        public const string EMONEY_API_URL_BALANCE = "/account/bal";
+        public const string EMONEY_API_URL_SENDMONEYINFO = "/transfer/info"; 
+        public const string EMONEY_API_URL_CONFIRMSENDMONEYINFO = "/transfer"; 
         public const string EMONEY_APP_OS_NAME = "Android";
         public const int EMONEY_APP_OS_VERSION = 33;
         public const string EMONEY_PHONE_NAME = "sdk_gphone_x86_64";
         public const string EMONEY_PHONE_DEVICE_ID = "333c2dc4-674b-49c7-a8a5-c6c07c4daef1";
         public const string EMONEY_VERSION_APP = "3.6.6";
         public const string EMONEY_APP_LOCALE = "en";
+        public const string EMONEY_APP_HeaderEinfoKey = "e-info";
+        public const string EMONEY_APP_HeaderElanguageKey = "e-language";
+        public const string EMONEY_APP_HeaderAuthorizedKey = "Authorization";
 
-        //Dùng cho quét giao dịch
+       
 
+        #region Model Quét giao dịch
         public class EmoneyHeaderRequest
         {
             public string HttpMethod { get; set; }
@@ -45,23 +52,27 @@ namespace WebApplication3.WalletHelper
             public string toDate { get; set; }
         }
 
-        public class GetEmoneyTransactionResponse
+        public class GetEmoneyBaseResponse
         {
             public int status { get; set; }
             public string code { get; set; }
             public string message { get; set; }
-            public long? transId { get; set; }
+            public string transId { get; set; }
             public bool requireOtp { get; set; }
             public int expiredOtp { get; set; }
             public int currency { get; set; }
             public double? balance { get; set; }
             public long transTime { get; set; }
+            public bool success { get; set; }
+
+        }
+        public class GetEmoneyTransactionResponse : GetEmoneyBaseResponse
+        {            
 
             public long? categories { get; set; }
 
             public TransactionResponse transactions { get; set; }
 
-            public bool success { get; set; }
         }
 
         public class TransactionResponse
@@ -78,11 +89,11 @@ namespace WebApplication3.WalletHelper
         {
             public long transId { get; set; }
             public long transDate { get; set; }
-            public Dictionary<string,string> transTypeName { get; set; }
+            public Dictionary<string, string> transTypeName { get; set; }
             public int currency { get; set; }
             public string currencyCode { get; set; }
             public string currencyName { get; set; }
-            public double  amount { get; set; }
+            public double amount { get; set; }
             public double fee { get; set; }
             public double? discount { get; set; }
             public string transMsisdn { get; set; }
@@ -105,7 +116,59 @@ namespace WebApplication3.WalletHelper
             public string refNo { get; set; }
 
         }
+        #endregion
 
+        #region Model Get Balance
+        public class GetEmoneyBalanceResponse
+        {
+            public int status { get; set; }
+            public string code { get; set; }
+            public string message { get; set; }
+            public long? transId { get; set; }
+            public bool requireOtp { get; set; }
+            public int expiredOtp { get; set; }
+            public int currency { get; set; }
+            public double? balance { get; set; }
+            public long transTime { get; set; }
+
+            public double? usdBalance { get; set; }
+            public double? khrBalance { get; set; }
+
+            public bool success { get; set; }
+
+
+        }
+        #endregion
+
+        #region Model Chuyển tiền
+        public class GetBillInfoEmoneyBodyRequest
+        {
+            public string amount { get; set; }
+            public string content { get; set; }
+            public int currency { get; set; }
+            public int option { get; set; }
+            public string pin { get; set; }
+            public string receiverMsisdn { get; set; }
+        }
+
+        public class GetBillInfoEmoneyResponse :GetEmoneyBaseResponse
+        {
+            public string amount { get; set; }
+            public string fee { get; set; }
+            public string totalAmount { get; set; }
+            public string commission { get; set; }
+            public string senderMsisdn { get; set; }
+            public string receiverMsisdn { get; set; }
+            public string receiverName { get; set; }
+            public string content { get; set; }
+            public string privateCode { get; set; }       
+        }
+
+        public class ConfirmBillInfoEmoneyBodyRequest  
+        {
+            public string transId { get; set; }
+        }
+        #endregion
 
         public static string SendRequestToURL(string apiUrl, string formBody, EmoneyHeaderRequest emoneyHeaderRequest)
         {
@@ -119,9 +182,9 @@ namespace WebApplication3.WalletHelper
                 request.KeepAlive = false;
                 request.Method = emoneyHeaderRequest.HttpMethod;
                 request.ContentType = emoneyHeaderRequest.ContentType;
-                request.Headers.Add("e-info", emoneyHeaderRequest.EmoneyInfo);
-                request.Headers.Add("e-language", emoneyHeaderRequest.EmoneyLanguage);
-                request.Headers.Add("Authorization", emoneyHeaderRequest.Authorization);
+                request.Headers.Add(EMONEY_APP_HeaderEinfoKey, emoneyHeaderRequest.EmoneyInfo);
+                request.Headers.Add(EMONEY_APP_HeaderElanguageKey, emoneyHeaderRequest.EmoneyLanguage);
+                request.Headers.Add(EMONEY_APP_HeaderAuthorizedKey, emoneyHeaderRequest.Authorization);
 
 
                 if (!string.IsNullOrEmpty(formBody))
@@ -174,6 +237,7 @@ namespace WebApplication3.WalletHelper
             return resultOutput;
 
         }
+
 
         #endregion
 

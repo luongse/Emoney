@@ -11802,25 +11802,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\AN515-54\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\": {}
+    "C:\\Users\\luongnd\\.nuget\\packages\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\Emoney\\Emoney\\ClassLibrary1\\WebApplication1\\WebApplication1.csproj",
+      "projectUniqueName": "D:\\me\\E\\Emoney\\ClassLibrary1\\WebApplication1\\WebApplication1.csproj",
       "projectName": "WebApplication1",
-      "projectPath": "E:\\Emoney\\Emoney\\ClassLibrary1\\WebApplication1\\WebApplication1.csproj",
-      "packagesPath": "C:\\Users\\AN515-54\\.nuget\\packages\\",
-      "outputPath": "E:\\Emoney\\Emoney\\ClassLibrary1\\WebApplication1\\obj\\",
+      "projectPath": "D:\\me\\E\\Emoney\\ClassLibrary1\\WebApplication1\\WebApplication1.csproj",
+      "packagesPath": "C:\\Users\\luongnd\\.nuget\\packages\\",
+      "outputPath": "D:\\me\\E\\Emoney\\ClassLibrary1\\WebApplication1\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\AN515-54\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        "C:\\Users\\luongnd\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp2.1"
@@ -11831,7 +11830,6 @@
       },
       "frameworks": {
         "netcoreapp2.1": {
-          "targetAlias": "netcoreapp2.1",
           "projectReferences": {}
         }
       },
@@ -11843,7 +11841,6 @@
     },
     "frameworks": {
       "netcoreapp2.1": {
-        "targetAlias": "netcoreapp2.1",
         "dependencies": {
           "Microsoft.AspNetCore.App": {
             "suppressParent": "All",
@@ -11857,23 +11854,16 @@
             "version": "[2.1.2, )"
           },
           "Microsoft.NETCore.App": {
-            "suppressParent": "All",
             "target": "Package",
             "version": "[2.1.0, )",
             "autoReferenced": true
           }
         },
         "imports": [
-          "net461",
-          "net462",
-          "net47",
-          "net471",
-          "net472",
-          "net48"
+          "net461"
         ],
         "assetTargetFallback": true,
-        "warn": true,
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.411\\RuntimeIdentifierGraph.json"
+        "warn": true
       }
     }
   }
