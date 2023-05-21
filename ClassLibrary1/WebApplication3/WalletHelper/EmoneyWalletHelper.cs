@@ -19,6 +19,8 @@ namespace WebApplication3.WalletHelper
 
         private const string EMONEY_API_TRANSFER_URL = "/transactions";
         private const string EMONEY_API_BALANCE_URL = "/account/bal";
+        public const string EMONEY_API_SENDMONEYINFO = "/transfer/info";
+        public const string EMONEY_API_CONFIRMSENDMONEYINFO = "/transfer";
 
         // Thời gian close connect sau khi thực hiện xong request (tính bằng giây)
         private const int CONNECTION_LEASE_TIMEOUT = 0;
@@ -138,8 +140,8 @@ namespace WebApplication3.WalletHelper
                         if (retryCount > 3)
                         {
                             stepInfo += "-3.1";
-                           // Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Binding failed -- Url: {0} -- bindingIpRequest: {1}",
-                             //   apiUrl, bindingIpRequest);
+                            // Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Binding failed -- Url: {0} -- bindingIpRequest: {1}",
+                            //   apiUrl, bindingIpRequest);
                             return null;
                         }
 
@@ -180,9 +182,9 @@ namespace WebApplication3.WalletHelper
                 }
 
                 if (string.IsNullOrEmpty(bindingIpRequest))
-                   // Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- bindingIpRequest null", apiUrl);
+                    // Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- bindingIpRequest null", apiUrl);
 
-                stepInfo += "-4";
+                    stepInfo += "-4";
                 var response = (HttpWebResponse)request.GetResponse();
                 stepInfo += "-4.1";
 
@@ -202,7 +204,7 @@ namespace WebApplication3.WalletHelper
             catch (WebException e)
             {
                 responseCode = "500";
-              //  Logger.CommonLogger.DefaultLogger.ErrorFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- ex: {1}", apiUrl, e.InnerException != null ? e.InnerException.ToString() : e.Message);
+                //  Logger.CommonLogger.DefaultLogger.ErrorFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- ex: {1}", apiUrl, e.InnerException != null ? e.InnerException.ToString() : e.Message);
                 if (e.Response != null)
                 {
                     responseCode = ((HttpWebResponse)e.Response).StatusCode.ToString();
@@ -217,14 +219,14 @@ namespace WebApplication3.WalletHelper
                         }
                     }
                 }
-               // Logger.CommonLogger.DefaultLogger.ErrorFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- ex: {1}", apiUrl, resultOutput);
+                // Logger.CommonLogger.DefaultLogger.ErrorFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- ex: {1}", apiUrl, resultOutput);
             }
             catch (Exception ex)
             {
                 responseCode = HttpStatusCode.InternalServerError.ToString();
 
                 resultOutput = ex + " -- stepInfo: " + stepInfo;
-               // Logger.CommonLogger.DefaultLogger.ErrorFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- ex: {1}", apiUrl, resultOutput);
+                // Logger.CommonLogger.DefaultLogger.ErrorFormat("WEmoneyHelper -- SendPOSTRequestJsonSimple -- Url: {0} -- ex: {1}", apiUrl, resultOutput);
             }
             finally
             {
@@ -235,6 +237,36 @@ namespace WebApplication3.WalletHelper
 
         }
 
+        private static string ParseETransType(string eTransType)
+        {
+            switch (eTransType)
+            {
+                case "in":
+                    return "Deposit";
+
+                case "out":
+                    return "WithDraw"
+
+
+            default:
+                    return eTransType;
+            }
+        }
+
+        private static decimal ConvertAmount(string netAmount)
+        {
+            if (string.IsNullOrEmpty(netAmount))
+                return 0;
+
+            try
+            {
+                return decimal.Parse(netAmount);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
         #endregion
 
 
@@ -253,7 +285,7 @@ namespace WebApplication3.WalletHelper
                 var resultDetail = SendPOSTRequestJsonSimple(requestUrl, "", bindingIpRequest, ref errorCode, headers, "application/json; charset=utf-8");
 
                 //Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- BalanceWithId -- wingSenderID: {0} -- Url: {1} -- Result: {2}",
-                  //  walletId, requestUrl, resultDetail);
+                //  walletId, requestUrl, resultDetail);
 
                 message = resultDetail;
 
@@ -270,8 +302,8 @@ namespace WebApplication3.WalletHelper
             }
             catch (Exception exp)
             {
-              //  Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- BalanceWithId -- wingSenderID: {0} -- exp: {1}",
-                 //   walletId, exp);
+                //  Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- BalanceWithId -- wingSenderID: {0} -- exp: {1}",
+                //   walletId, exp);
                 return false;
             }
         }
@@ -320,30 +352,35 @@ namespace WebApplication3.WalletHelper
 
 
         #region transaction
-        /*
-          public static List<TransactionModelResponse> GetWalletTransactionWithAccessToken(string walletId, DateTime dateFrom, int groupId, int page, DateTime dateTo, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo)
-    {
-        string message = "", errorCode = "" ;
-        List<TransactionModelResponse> listTransactionModelResponse = new List<TransactionModelResponse>();
-        if (string.IsNullOrEmpty(walletId) || string.IsNullOrEmpty(walletDeviceId) || string.IsNullOrEmpty(jsonEnvInfo) || string.IsNullOrEmpty(accessToken))
-            return null;
 
-        //DateTime? resultDateTo = !(dateTo.HasValue) ? DateTime.Now : dateTo;
-        //DateTime? resultDateFrom = !(dateFrom.HasValue) ? resultDateTo.AddDays(-7) : dateFrom;
+        public static List<TransactionDetailModel> GetWalletTransactionWithAccessToken(string walletId, DateTime dateFrom, int groupId, int page, DateTime dateTo, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo)
+        {
+            string message = "", errorCode = "";
+            if (string.IsNullOrEmpty(walletId) || string.IsNullOrEmpty(walletDeviceId) || string.IsNullOrEmpty(jsonEnvInfo) || string.IsNullOrEmpty(accessToken))
+                return null;
 
-        //if (!dateFrom.HasValue)
-        //{
-        //    resultDateFrom = resultDateTo.AddDays(-7);
-        //}
+            //DateTime? resultDateTo = !(dateTo.HasValue) ? DateTime.Now : dateTo;
+            //DateTime? resultDateFrom = !(dateFrom.HasValue) ? resultDateTo.AddDays(-7) : dateFrom;
+
+            //if (!dateFrom.HasValue)
+            //{
+            //    resultDateFrom = resultDateTo.AddDays(-7);
+            //}
+
+            var listTransactionDetailModels = new List<TransactionDetailModel>();
+            var result = GetListWalletTransactionsWithId(walletId, dateFrom, groupId, page, dateTo, accessToken, bindingIpRequest, walletDeviceId, jsonEnvInfo, ref message, ref errorCode, ref listTransactionDetailModels);
+
+            if (!result || listTransactionDetailModels == null || !listTransactionDetailModels.Any())
+                break;
+            var listTransactionsDetailReturn = new List<TransactionDetailModel>();
+            listTransactionsDetailReturn.AddRange(listTransactionDetailModels);
+            return listTransactionsDetailReturn;
+
+        }
 
 
-        var result = GetListWalletTransactionsWithId(walletId, dateFrom, groupId, page, dateTo, accessToken, bindingIpRequest, walletDeviceId, jsonEnvInfo, ref message,  ref errorCode, ref  listTransactionModelResponse);
 
-    }
-         */
-
-
-        private static bool GetListWalletTransactionsWithId(string walletId, DateTime dateFrom, int groupId, int page, DateTime dateTo, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref List<TransactionModelResponse> listTransactionModelResponse)
+        private static bool GetListWalletTransactionsWithId(string walletId, DateTime dateFrom, int groupId, int page, DateTime dateTo, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref List<TransactionDetailModel> transactionDetailModels)
         {
             if (page < 1) page = 1;
             try
@@ -358,24 +395,33 @@ namespace WebApplication3.WalletHelper
                     ToDate = dateTo.ToString(),
                 };
                 string body = JsonConvert.SerializeObject(bodyRequest);
-
+                var responseCode = string.Empty;
                 const int sleepTime = 1000;
                 System.Threading.Thread.Sleep(sleepTime);
-                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref errorCode, headers, "application/json; charset=utf-8");
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref responseCode, headers, "application/json; charset=utf-8");
 
                 //Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- Transactions -- wingSenderID: {0} -- Url: {1} -- Result: {2}",
                 //  walletId, requestUrl, resultDetail);
 
-                message = resultDetail;
 
                 if (string.IsNullOrEmpty(resultDetail))
                     return false;
 
-                var transactions = JsonConvert.DeserializeObject<TransactionResponse>(resultDetail);
-                if (transactions == null || transactions.Results == null || !(transactions.Results.Any()))
+                if (!string.IsNullOrEmpty(responseCode) && responseCode != "200")
+                {
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var transactions = JsonConvert.DeserializeObject<GetEmoneyTransactionResponse>(resultDetail);
+                if (transactions == null)
                     return false;
 
-                listTransactionModelResponse = transactions.Results;
+                message = "Success - ResponseString: " + result;
+                transactionDetailModels = new List<TransactionDetailModel>();
+                if (transactions.Results == null || !(transactions.Results.Any()))
+                    transactionDetailModels = ConvertToTransactionDetailModel(transactions.Transactions.Result);
+
                 return true;
             }
             catch (Exception exp)
@@ -389,7 +435,147 @@ namespace WebApplication3.WalletHelper
 
 
         #region transfer
+        public static TransferEMoneyResponseModel SendingMoneyEMoneyWallet(string walletId, string amount, string content, int currency, int option, string pin, string destWalletId, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo)
+        {
+            try
+            {
+                string message = "", errorCode = "";
+                TransferEMoneyResponseModel transferEMoneyResponseModel = new TransferEMoneyResponseModel();
+                if (string.IsNullOrEmpty(walletId) || string.IsNullOrEmpty(walletDeviceId) || string.IsNullOrEmpty(jsonEnvInfo) || string.IsNullOrEmpty(accessToken))
+                    return null;
+                var checkoutInfoSendingMoneyResult = CheckoutInfoSendingMoneyResponse(walletId,  amount,  content,  currency,  option,  pin,  destWalletId,  accessToken,  bindingIpRequest,  walletDeviceId,  jsonEnvInfo, ref  message, ref  errorCode, ref transferEMoneyResponseModel)
+                if (!checkoutInfoSendingMoneyResult) return null;
 
+                if (string.IsNullOrEmpty(transferEMoneyResponseModel.TransactionId))
+                {
+                    message = "Do not generate TransactionID --CheckoutInfoSendingMoneyResponse -- wingSenderID :  " +walletId ;
+                    return false;
+                }
+                var transId = transferEMoneyResponseModel.TransactionId;
+                var confirmSendingMoneyResult = ConfirmSendingEmoneyWallet(walletId, transId, bindingIpRequest, walletDeviceId, jsonEnvInfo, ref message, ref errorCode, ref transferEMoneyResponseModel);
+
+                if (!confirmSendingMoneyResult) {
+                    return null;
+                }
+
+                return transferEMoneyResponseModel;
+
+
+
+
+            }
+            catch (Exception exp)
+            {
+                //  Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendingMoneyEMoneyWallet -- wingSenderID: {0} -- exp: {1}",
+                //   walletId, exp);
+                return false;
+            }
+        }
+        private static bool CheckoutInfoSendingMoneyResponse(string walletId, string amount, string content, int currency, int option, string pin, string destWalletId, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref TransferEMoneyResponseModel transferEMoneyResponseModel)
+        {
+            try
+            {
+                var headers = GetCommonHeader(jsonEnvInfo, walletId, walletDeviceId, accessToken);
+                var requestUrl = string.Format("{0}{1}", EMONEY_API_URL, EMONEY_API_SENDMONEYINFO);
+                var amount = ConvertAmount(amount);
+
+
+                var bodyRequest = new GetBillInfoEmoneyBodyRequest
+                {
+                    Amount = amount,
+                    Content = content,
+                    Currency = currency,
+                    Pin = pin,
+                    Option = option,
+                    ReceiverMsisdn = destWalletId
+                };
+                string body = JsonConvert.SerializeObject(bodyRequest);
+                var responseCode = string.Empty;
+                const int sleepTime = 1000;
+                System.Threading.Thread.Sleep(sleepTime);
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref responseCode, headers, "application/json; charset=utf-8");
+
+                //Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendingMoney -- wingSenderID: {0} -- Url: {1} -- Result: {2}",
+                //  walletId, requestUrl, resultDetail);
+
+
+                if (string.IsNullOrEmpty(resultDetail))
+                    return false;
+
+                if (!string.IsNullOrEmpty(responseCode) && responseCode != "200")
+                {
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var billInfoResponse = JsonConvert.DeserializeObject<GetBillInfoEmoneyResponse>(resultDetail);
+                if (billInfoResponse == null)
+                    return false;
+                transferEMoneyResponseModel = new TransferEMoneyResponseModel();
+                transferEMoneyResponseModel = ConvertToTransferEMoneyResponseModel(billInfoResponse);
+                return true;
+            }
+            catch (Exception exp)
+            {
+                //  Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendingMoney -- wingSenderID: {0} -- exp: {1}",
+                //   walletId, exp);
+                return false;
+            }
+        }
+
+        private static bool ConfirmSendingEmoneyWallet(string walletId, string transId, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref TransferEMoneyResponseModel confirmTransferEMoneyResponseModel)
+        {
+            try
+            {
+                var headers = GetCommonHeader(jsonEnvInfo, walletId, walletDeviceId, accessToken);
+                var requestUrl = string.Format("{0}{1}", EMONEY_API_URL, EMONEY_API_CONFIRMSENDMONEYINFO);
+                if (string.IsNullOrEmpty((transId)){
+                    message = "transId is null.";
+                    reuturn false;
+
+                }
+                var bodyRequest = new ConfirmSendingEmoneyWalletRequest
+                {
+                    TransactionId = transId
+                };
+                string body = JsonConvert.SerializeObject(bodyRequest);
+                var responseCode = string.Empty;
+                const int sleepTime = 1000;
+                System.Threading.Thread.Sleep(sleepTime);
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref responseCode, headers, "application/json; charset=utf-8");
+
+                //Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- ConfirmSendingMoney -- wingSenderID: {0} -- Url: {1} -- Result: {2}",
+                //  walletId, requestUrl, resultDetail);
+
+
+                if (string.IsNullOrEmpty(resultDetail))
+                    return false;
+
+                if (!string.IsNullOrEmpty(responseCode) && responseCode != "200")
+                {
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var confirmSendingMoneyResponse = JsonConvert.DeserializeObject<GetBillInfoEmoneyResponse>(resultDetail);
+                if (confirmSendingMoneyResponse == null)
+                    return false;
+                confirmTransferEMoneyResponseModel = new TransferEMoneyResponseModel();
+                confirmTransferEMoneyResponseModel = ConvertToTransferEMoneyResponseModel(confirmSendingMoneyResponse);
+                if (confirmTransferEMoneyResponseModel == null)
+                {
+                    return false;
+                }
+                confirmTransferEMoneyResponseModel.StatusCode = WHelperStatusCode.Success;
+                return true;
+            }
+            catch (Exception exp)
+            {
+                //  Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- ConfirmSendingMoney -- wingSenderID: {0} -- exp: {1}",
+                //   walletId, exp);
+                return false;
+            }
+        }
         #endregion
     }
 
@@ -462,6 +648,9 @@ namespace WebApplication3.WalletHelper
         [JsonProperty("currency")]
         public int Currency { get; set; }
 
+        [JsonProperty("balance")]
+        public string Balance { get; set; }
+
         [JsonProperty("transTime")]
         public long TransactionTime { get; set; }
 
@@ -517,10 +706,10 @@ namespace WebApplication3.WalletHelper
     #endregion
 
 
-    #region Quét giao dich
+    #region Transaction History
 
     #region request
-    
+
     public class GetEmoneyTransactionBodyRequest
     {
         [JsonProperty("fromDate")]
@@ -539,7 +728,7 @@ namespace WebApplication3.WalletHelper
 
     #region response
 
- 
+
     public class GetEmoneyTransactionResponse : WEmoneyBaseResponse
     {
         [JsonProperty("categories")]
@@ -547,11 +736,11 @@ namespace WebApplication3.WalletHelper
         public long? Categories { get; set; }
 
         [JsonProperty("transactions")]
-        public TransactionResponse Transactions { get; set; }
+        public TransactionsDetailResponse Transactions { get; set; }
 
     }
 
-    public class TransactionResponse
+    public class TransactionsDetailResponse
     {
         [JsonProperty("totalRecords")]
 
@@ -560,7 +749,7 @@ namespace WebApplication3.WalletHelper
         [JsonProperty("TotalPages")]
         public int totalPages { get; set; }
 
-       
+
         [JsonProperty("currentPage")]
         public int CurrentPage { get; set; }
 
@@ -568,10 +757,10 @@ namespace WebApplication3.WalletHelper
         public int PageSize { get; set; }
 
         [JsonProperty("results")]
-        public List<TransactionModelResponse> Results { get; set; }
+        public List<TransactionDetailDtoResponse> Results { get; set; }
     }
 
-    public class TransactionModelResponse
+    public class TransactionDetailDtoResponse
     {
         [JsonProperty("transId")]
         public long TransId { get; set; }
@@ -603,7 +792,7 @@ namespace WebApplication3.WalletHelper
         [JsonProperty("transMsisdn")]
         public string TransMsisdn { get; set; }
 
-        [JsonProperty("transMsisdn")]
+        [JsonProperty("transCustName")]
         public string TransCustName { get; set; }
 
         [JsonProperty("benMsisdn")]
@@ -654,6 +843,199 @@ namespace WebApplication3.WalletHelper
         [JsonProperty("refNo")]
         public string RefNo { get; set; }
 
+    }
+    public class TransactionDetailModel
+    {
+        [JsonProperty("transId")]
+        public long TransId { get; set; }
+
+        [JsonProperty("transDate")]
+        public long TransDate { get; set; }
+
+        [JsonProperty("amount")]
+        public double Amount { get; set; }
+
+        [JsonProperty("transType")]
+        public string TransType { get; set; }
+
+        [JsonProperty("walletName")]
+        public string WalletName { get; set; }
+
+        [JsonProperty("transMsisdn")]
+        public string DestWalletId { get; set; }
+
+        [JsonProperty("transCustName")]
+        public string DestWalletName { get; set; }
+
+
+    }
+    public static TransactionDetailModel ConvertToTransactionDetailModel(TransactionResponse transactionResponse)
+    {
+        if (transactionResponse == null) return null;
+
+        var walletName = var destWalletName = transactionResponse.BenCustName ? "" : transactionResponse.BenCustName.Trim();
+        var destWalletId = transactionResponse.BenMsisdn.Replace("+855", "0").Replace("855", "0").Trim();
+        var destWalletName = transactionResponse.TransCustName ? "" : transactionResponse.TransCustName.Trim();
+
+        var transType = ParseETransType(transactionResponse.TransDirection);
+
+        var dataSuccess = new TransactionDetailModel
+        {
+            TransId = transactionResponse.TransId,
+            TransDate = transactionResponse.TransDate,
+            WalletName = walletName,
+            Amount = ConvertAmount(transactionResponse.Amount.ToString()),
+            DestWalletId = destWalletId,
+            DestWalletName = destWalletName,
+            TransType = transType,
+        }
+
+        return dataSuccess;
+
+    }
+    private static List<TransactionDetailModel> ConvertToTransactionDetailModel(List<TransactionResponse> emoneyTransactions)
+    {
+        if (emoneyTransactions == null || !emoneyTransactions.Any())
+            return null;
+
+        return emoneyTransactions.Select(ConvertToTransactionDetailModel).Where(t => t != null).ToList();
+    }
+
+
+
+    #endregion
+
+    #endregion
+
+    #region transfer
+
+    #region request
+    public class GetBillInfoEmoneyBodyRequest
+    {
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+
+        [JsonProperty("content")]
+        public string Content { get; set; }
+
+        [JsonProperty("currency")]
+        public int Currency { get; set; }
+
+        [JsonProperty("option")]
+        public int Option { get; set; }
+
+        [JsonProperty("pin")]
+        public string Pin { get; set; }
+
+        [JsonProperty("receiverMsisdn")]
+        public string ReceiverMsisdn { get; set; }
+    }
+
+    public class ConfirmSendingEmoneyWalletRequest
+    {
+        [JsonProperty("transId")]
+        public string TransactionId { get; set; }
+    }
+    #endregion
+
+    #region response
+    public class GetBillInfoEmoneyResponse : WEmoneyBaseResponse
+    {
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+
+        [JsonProperty("fee")]
+        public string Fee { get; set; }
+
+        [JsonProperty("totalAmount")]
+        public string TotalAmount { get; set; }
+
+        [JsonProperty("commission")]
+        public string Commission { get; set; }
+
+        [JsonProperty("senderMsisdn")]
+        public string SenderMsisdn { get; set; }
+
+        [JsonProperty("receiverMsisdn")]
+        public string ReceiverMsisdn { get; set; }
+
+        [JsonProperty("receiverName")]
+        public string ReceiverName { get; set; }
+
+        [JsonProperty("content")]
+        public string Content { get; set; }
+
+        [JsonProperty("privateCode")]
+        public string PrivateCode { get; set; }
+    }
+
+    public class TransferEMoneyResponseModel
+    {
+        [JsonProperty("status")]
+        public int StatusCode { get; set; }
+
+        [JsonProperty("transId")]
+        public string TransactionId { get; set; }
+
+        [JsonProperty("currency")]
+        public int Currency { get; set; }
+
+        [JsonProperty("balance")]
+        public string Balance { get; set; }
+
+        [JsonProperty("transTime")]
+        public long TransactionTime { get; set; }
+
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+
+        [JsonProperty("fee")]
+        public string Fee { get; set; }
+
+        [JsonProperty("totalAmount")]
+        public string TotalAmount { get; set; }
+
+        [JsonProperty("senderMsisdn")]
+        public string WalletId { get; set; }
+
+        [JsonProperty("receiverMsisdn")]
+        public string DesWalletId { get; set; }
+
+        [JsonProperty("receiverName")]
+        public string DestWalletName { get; set; }
+
+    }
+
+    private static TransferEMoneyResponseModel ConvertToTransferEMoneyResponseModel(GetBillInfoEmoneyResponse getBillInfoEmoneyResponse)
+    {
+        if (getBillInfoEmoneyResponse = null) return null;
+        if (string.IsNullOrEmpty(getBillInfoEmoneyResponse.TransactionId))
+        {
+            return null;
+        }
+
+        var amount = ConvertAmount(getBillInfoEmoneyResponse.Amount);
+        var fee = ConvertAmount(getBillInfoEmoneyResponse.Fee);
+        var totalAmount = ConvertAmount(getBillInfoEmoneyResponse.TotalAmount);
+
+        var walletId = getBillInfoEmoneyResponse.SenderMsisdn ? "" : getBillInfoEmoneyResponse.SenderMsisdn;
+        var destWalletId = getBillInfoEmoneyResponse.ReceiverMsisdn ? "" : getBillInfoEmoneyResponse.ReceiverMsisdn;
+        var destWalletName = getBillInfoEmoneyResponse.destWalletName ? "" : getBillInfoEmoneyResponse.destWalletName;
+
+        var dataSuccess = new TransferEMoneyResponseModel
+        {
+            TransactionId = getBillInfoEmoneyResponse.TransactionId,
+            TransactionTime = getBillInfoEmoneyResponse.TransactionTime,
+            Balance = getBillInfoEmoneyResponse.Balance,
+            Amount = amount,
+            Fee = fee,
+            TotalAmount = totalAmount,
+            Currency = getBillInfoEmoneyResponse.Currency,
+            WalletId = walletId,
+            DesWalletId = destWalletId,
+            DestWalletName = destWalletName
+        };
+        return dataSuccess;
     }
     #endregion
 
