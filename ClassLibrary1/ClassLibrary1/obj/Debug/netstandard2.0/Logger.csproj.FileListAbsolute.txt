@@ -7,3 +7,13 @@ D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.Assem
 D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\bin\Debug\netstandard2.0\Logger.pdb
 D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.dll
 D:\me\E\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.pdb
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\bin\Debug\netstandard2.0\Logger.deps.json
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\bin\Debug\netstandard2.0\Logger.dll
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\bin\Debug\netstandard2.0\Logger.pdb
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.csproj.AssemblyReference.cache
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.GeneratedMSBuildEditorConfig.editorconfig
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.AssemblyInfoInputs.cache
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.AssemblyInfo.cs
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.csproj.CoreCompileInputs.cache
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.dll
+E:\Emoney\Emoney\ClassLibrary1\ClassLibrary1\obj\Debug\netstandard2.0\Logger.pdb

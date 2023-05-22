@@ -247,7 +247,7 @@ namespace WebApplication3.WalletHelper
                     return "Deposit";
 
                 case "out":
-                    return "WithDraw";
+                    return "Withdraw";
 
 
             default:
@@ -270,43 +270,97 @@ namespace WebApplication3.WalletHelper
             }
         }
 
-        private static TransactionDetailModel ConvertToTransactionDetailModel(TransactionDetailDtoResponse transactionResponse)
+        private static TransactionDetailModel ConvertToTransactionDetailModel(WEmoneyWalletInfoModel wEmoneyWalletInfoModel,TransactionDetailDtoResponse transactionResponse)
         {
             if (transactionResponse == null) return null;
+            if (wEmoneyWalletInfoModel == null) return null;
 
+            var walletId = string.IsNullOrEmpty(transactionResponse.TransMsisdn) ? wEmoneyWalletInfoModel.WalletId : transactionResponse.TransMsisdn;
             var walletName = string.IsNullOrEmpty(transactionResponse.TransCustName) ? "" : transactionResponse.TransCustName.Trim();
 
             var destWalletId = String.Empty;
             if (!string.IsNullOrEmpty(transactionResponse.BenMsisdn))
             {
-                destWalletId = transactionResponse.BenMsisdn.Trim();
+               // destWalletId = transactionResponse.BenMsisdn.Trim();
                 destWalletId = transactionResponse.BenMsisdn.Replace("+855", "0").Replace("855", "0").Trim();
+            }
+            else
+            {
+                destWalletId = wEmoneyWalletInfoModel.WalletId;
             }
 
             var destWalletName = string.IsNullOrEmpty(transactionResponse.BenCustName) ? "" : transactionResponse.BenCustName.Trim();
 
+            var currencyCode = string.IsNullOrEmpty(transactionResponse.CurrencyCode)? "" : transactionResponse.CurrencyCode;
+            var description = string.IsNullOrEmpty(transactionResponse.FullContent) ? "" : transactionResponse.FullContent;
+
             var transType = ParseETransType(transactionResponse.TransDirection);
 
-            var dataSuccess = new TransactionDetailModel
+            TransactionDetailModel dataSuccess = new TransactionDetailModel();
+            switch (transType)
             {
-                TransId = transactionResponse.TransId,
-                TransDate = transactionResponse.TransDate,
-                WalletName = walletName,
-                Amount = ConvertAmount(transactionResponse.Amount.ToString()),
-                DestWalletId = destWalletId,
-                DestWalletName = destWalletName,
-                TransType = transType,
-            };
+                case "Deposit":
+                        dataSuccess = new TransactionDetailModel
+                    {
+                        TransactionId = transactionResponse.TransId,
+                        TransTime = transactionResponse.TransDate,
+                        WalletId = walletId,
+                        WalletAccountName = walletName,
+                        DepositAmount = ConvertAmount(transactionResponse.Amount.ToString()),
+                        DestWalletId = destWalletId,
+                        DestWalletAccountName = destWalletName,
+                        TransactionType = transType,
+                        CurrencyCode = currencyCode,
+                        Description = description                       
+                        };
+                    break;
+                case "Withdraw":
+                    dataSuccess = new TransactionDetailModel
+                    {
+                        TransactionId = transactionResponse.TransId,
+                        TransTime = transactionResponse.TransDate,
+                        WalletId = walletId,
+                        WalletAccountName = walletName,
+                        DepositAmount = ConvertAmount(transactionResponse.Amount.ToString()),
+                        DestWalletId = destWalletId,
+                        DestWalletAccountName = destWalletName,
+                        TransactionType = transType,
+                        CurrencyCode = currencyCode,
+                        Description = description
+                    };
+                    break;
+
+                default:
+                    dataSuccess = new TransactionDetailModel
+                    {
+                        TransactionId = transactionResponse.TransId,
+                        TransTime = transactionResponse.TransDate,
+                        WalletAccountName = walletName,
+                        DepositAmount = ConvertAmount(transactionResponse.Amount.ToString()),
+                        DestWalletId = destWalletId,
+                        DestWalletAccountName = destWalletName,
+                        TransactionType = transType,
+                        CurrencyCode = currencyCode,
+                        Description = description
+                    };
+                    break;
+
+            }
+
+           
 
             return dataSuccess;
 
         }
-        private static List<TransactionDetailModel> ConvertToTransactionDetailModel(List<TransactionDetailDtoResponse> emoneyTransactions)
+        private static List<TransactionDetailModel> ConvertToTransactionDetailModel(WEmoneyWalletInfoModel wEmoneyWalletInfoModel ,List<TransactionDetailDtoResponse> emoneyTransactions)
         {
             if (emoneyTransactions == null || !emoneyTransactions.Any())
                 return null;
 
-            return emoneyTransactions.Select( g => ConvertToTransactionDetailModel(g)).Where(t => t != null).ToList();
+            if (wEmoneyWalletInfoModel == null)
+                return null;
+
+            return emoneyTransactions.Select( g => ConvertToTransactionDetailModel(wEmoneyWalletInfoModel,g)).Where(t => t != null).ToList();
         }
         private static TransferEMoneyResponseModel ConvertToTransferEMoneyResponseModel(GetBillInfoEmoneyResponse getBillInfoEmoneyResponse)
         {
@@ -493,8 +547,14 @@ namespace WebApplication3.WalletHelper
 
                 message = "Success - ResponseString: " + resultDetail;
                 transactionDetailModels = new List<TransactionDetailModel>();
+                var walletInfoModel = GetWalletInfo(jsonEnvInfo, walletId, walletDeviceId);
+                if(walletInfoModel == null)
+                {
+                    message = "Cannot Get Wallet Info -ListTransactions ";
+                    return false;
+                }
                 if (transactions.Transactions.Results != null && transactions.Transactions.Results.Any())
-                    transactionDetailModels = ConvertToTransactionDetailModel(transactions.Transactions.Results);
+                    transactionDetailModels = ConvertToTransactionDetailModel(walletInfoModel,transactions.Transactions.Results);
                    // transactionDetailModels = transactions.Transactions.Results.Select(g => ConvertToTransactionDetailModel(g)).ToList();
 
                 return true;
@@ -964,7 +1024,7 @@ namespace WebApplication3.WalletHelper
         /// <summary>
         /// Tên tài khoản Ví nhận
         /// </summary>
-          [JsonProperty("dest_wallet_name")]
+        [JsonProperty("dest_wallet_name")]
         public string DestWalletAccountName { get; set; }
 
         /// <summary>
@@ -972,14 +1032,7 @@ namespace WebApplication3.WalletHelper
         /// </summary>
         [JsonProperty("amount")]
         public decimal DepositAmount { get; set; }
-
-        /// <summary>
-        /// Trạng thái giao dịch
-        /// </summary>
-        [JsonProperty("status")]
-
-        public WHelperStatusCode StatusCode { get; set; }
-
+       
 
         /// <summary>
         /// Là nạp hay rút (Deposit, Withdraw, ...)
@@ -992,13 +1045,13 @@ namespace WebApplication3.WalletHelper
         /// Mã giao dịch
         /// </summary>
         [JsonProperty("trans_id")]
-        public string TransactionId { get; set; }
+        public long TransactionId { get; set; }
 
         /// <summary>
         /// Thời gian giao dịch
         /// </summary>
         [JsonProperty("trans_date")]
-        public DateTime TransTime { get; set; }
+        public long TransTime { get; set; }
 
         /// <summary>
         /// Mô tả
