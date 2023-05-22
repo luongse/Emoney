@@ -7,6 +7,7 @@
     public class RequestModel : BaseRequestModel
     {
         public string Token { get; set; }
+        public string WalletId { get; set; }
     }
 
    

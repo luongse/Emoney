@@ -102,8 +102,26 @@
     </Compile>
     <Compile Include="Models\Product.cs" />
     <Compile Include="Models\RequestModel.cs" />
+    <Compile Include="MyUtility\Common.cs" />
+    <Compile Include="MyUtility\DateTimeExtension.cs" />
+    <Compile Include="MyUtility\EmailHandler.cs" />
+    <Compile Include="MyUtility\Extensions\DataTableExt.cs" />
+    <Compile Include="MyUtility\Extensions\EnumExtension.cs" />
+    <Compile Include="MyUtility\Extensions\NumberExtension.cs" />
+    <Compile Include="MyUtility\Extensions\ObjectExtension.cs" />
+    <Compile Include="MyUtility\Extensions\ResourceExtension.cs" />
+    <Compile Include="MyUtility\Extensions\StringExtension.cs" />
+    <Compile Include="MyUtility\FileExtension.cs" />
+    <Compile Include="MyUtility\Game.cs" />
+    <Compile Include="MyUtility\KeyValue.cs" />
+    <Compile Include="MyUtility\NetworkCommon.cs" />
+    <Compile Include="MyUtility\SecurityCommon.cs" />
+    <Compile Include="MyUtility\StringCommon.cs" />
+    <Compile Include="MyUtility\ValidatorModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WalletEnum\WHelperStatusCode.cs" />
     <Compile Include="WalletHelper\EmoneyHelper.cs" />
+    <Compile Include="WalletHelper\EmoneyWalletHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -116,6 +134,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ClassLibrary1\Logger.csproj">
+      <Project>{4668d997-bbf8-4365-831f-0b16f09bff42}</Project>
+      <Name>Logger</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

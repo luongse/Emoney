@@ -92,35 +92,15 @@ namespace ProductsApp.Controllers
 
 
             #region Quet giao dich
-            /*
-          var httpMethodPost = "POST";
-          var requestHeader = new EmoneyHeaderRequest
-          {
-              ContentType = contentType,
-              EmoneyInfo = emoneyInfo,
-              EmoneyLanguage = eLanguage,
-              Authorization = requestModel.Token,
-              HttpMethod = httpMethodPost
-          };
-          //DateTime resultDateFrom, resultDateTo;
-          //DateTime.TryParseExact("09/05/2023", "dd'/'MM'/'yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDateFrom);
-          //DateTime.TryParseExact("16/05/2023", "dd'/'MM'/'yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDateTo);
+            
+            DateTime resultDateFrom, resultDateTo;
+            DateTime.TryParseExact("09/05/2023", "dd'/'MM'/'yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDateFrom);
+            DateTime.TryParseExact("16/05/2023", "dd'/'MM'/'yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out resultDateTo);
+            var json = "{\"wallet_id\":\"0969059611\",\"app_language\":\"en\",\"app_version_string\":\"3.6.6\",\"app_version_code\":\"3.6.6\",\"device_id\":\"8f2b2494-5332-4966-9882-ae4e06ee6558\",\"device_platform_name\":\"Android\",\"device_platform_os_version\":\"13\",\"device_brand_name\":\"Pixel\",\"device_name\":\"sdk_gphone_x86_64\"}";
+            var result  = EmoneyWalletHelper.GetWalletTransactionWithAccessToken(requestModel.WalletId, resultDateFrom.ToString("dd/MM/yyyy"), -1,1, resultDateTo.ToString("dd/MM/yyyy"),requestModel.Token,"",requestModel.DeviceId,json);
+            return Ok(result);
+             
 
-          DateTime resultDateTo = DateTime.Now;
-          DateTime resultDateFrom = resultDateTo.AddDays(-6);
-          var bodyRequest = new GetEmoneyTransactionBodyRequest
-          {
-              fromDate = resultDateFrom.ToString("dd/MM/yyyy"),
-              groupId = -1,
-              page = 1,
-              toDate = resultDateTo.ToString("dd/MM/yyyy")
-          };
-          string body = JsonConvert.SerializeObject(bodyRequest);
-          var result = EmoneyHelper.SendRequestToURL(urlTransfer, body, requestHeader);
-
-          var obj = JsonConvert.DeserializeObject<GetEmoneyTransactionResponse>(result);
-          return Ok(obj);
-          */
             #endregion
 
 
@@ -147,7 +127,8 @@ namespace ProductsApp.Controllers
             #region chuyển tiền 
 
             #region lấy thông tin chuyển
-            
+            /*
+             
             var httpMethodGetInfoBill = "POST";
             var requestHeaderGetInfoBill = new EmoneyHeaderRequest
             {
@@ -184,6 +165,11 @@ namespace ProductsApp.Controllers
 
             return Ok(confirmBillInfoResult);
 
+             */
+            //var json = "{\"wallet_id\":\"0969059611\",\"app_language\":\"en\",\"app_version_string\":\"3.6.6\",\"app_version_code\":\"3.6.6\",\"device_id\":\"8f2b2494-5332-4966-9882-ae4e06ee6558\",\"device_platform_name\":\"Android\",\"device_platform_os_version\":\"13\",\"device_brand_name\":\"Pixel\",\"device_name\":\"sdk_gphone_x86_64\"}";
+            //var result = EmoneyWalletHelper.SendingMoneyEMoneyWallet(requestModel.WalletId, requestModel.Amount,requestModel.Content,requestModel.Currency,requestModel.Option,requestModel.Pin,requestModel.ReceiverMsisdn, requestModel.Token, "", requestModel.DeviceId, json);
+            //return Ok(result);
+            
 
             #endregion
             #endregion
