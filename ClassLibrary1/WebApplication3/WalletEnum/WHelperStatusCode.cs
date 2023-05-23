@@ -7,7 +7,8 @@ namespace WebApplication3.WalletEnum
 {
     public enum WHelperStatusCode
     {
-        Success,
         Fail,
+        Success,
+       
     }
 }

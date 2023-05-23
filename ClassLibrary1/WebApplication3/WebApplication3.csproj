@@ -102,6 +102,7 @@
     </Compile>
     <Compile Include="Models\Product.cs" />
     <Compile Include="Models\RequestModel.cs" />
+    <Compile Include="Models\WalletBalanceWithIdModel.cs" />
     <Compile Include="MyUtility\Common.cs" />
     <Compile Include="MyUtility\DateTimeExtension.cs" />
     <Compile Include="MyUtility\EmailHandler.cs" />
@@ -134,12 +135,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\Logger.csproj">
-      <Project>{4668d997-bbf8-4365-831f-0b16f09bff42}</Project>
-      <Name>Logger</Name>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
