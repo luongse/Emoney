@@ -1,4 +1,6 @@
-﻿namespace WebApplication3.Models
+﻿using Newtonsoft.Json;
+
+namespace WebApplication3.Models
 {
     public class BaseRequestModel
     {
@@ -20,6 +22,9 @@
         public int Option { get; set; }
         public string Pin { get; set; }
         public string ReceiverMsisdn { get; set; }
+        [JsonProperty("otp", NullValueHandling =NullValueHandling.Ignore)]    
+        public string Otp { get; set; }
+
     }
 
     public class ApiConfirmSendMoneyInfoRquest : RequestModel

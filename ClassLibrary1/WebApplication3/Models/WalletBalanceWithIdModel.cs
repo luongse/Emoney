@@ -1,8 +1,8 @@
-﻿using System;
+﻿using BusinessObject.WalletBusiness.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using WebApplication3.WalletEnum;
 
 namespace WebApplication3.Models
 {

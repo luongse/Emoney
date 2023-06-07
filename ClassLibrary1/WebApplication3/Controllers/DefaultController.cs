@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using BusinessObject.WalletBusiness.Enums;
+using Newtonsoft.Json;
 using ProductsApp.Models;
 using System;
 using System.Collections.Generic;
@@ -123,17 +124,27 @@ namespace ProductsApp.Controllers
 
             #region chuyển tiền                  
 
-            //var json = "{\"wallet_id\":\"0969059611\",\"app_language\":\"en\",\"app_version_string\":\"3.6.6\",\"app_version_code\":\"3.6.6\",\"device_id\":\"8f2b2494-5332-4966-9882-ae4e06ee6558\",\"device_platform_name\":\"Android\",\"device_platform_os_version\":\"13\",\"device_brand_name\":\"Pixel\",\"device_name\":\"sdk_gphone_x86_64\"}";
-            //var result = EmoneyWalletHelper.SendingMoneyEMoneyWallet(requestModel.WalletId, requestModel.Amount, requestModel.Content, requestModel.Currency, requestModel.Option, requestModel.Pin, requestModel.ReceiverMsisdn, requestModel.Token, "", requestModel.DeviceId, json);
-            //return Ok(result);
+            var json = "{\"wallet_id\":\"0969059611\",\"app_language\":\"en\",\"app_version_string\":\"3.6.6\",\"app_version_code\":\"3.6.6\",\"device_id\":\"79459a8e-92aa-465e-adb1-e9cccf4c0466\",\"device_platform_name\":\"Android\",\"device_platform_os_version\":\"13\",\"device_brand_name\":\"Pixel\",\"device_name\":\"sdk_gphone_x86_64\"}";
+            var statuscode = WHelperDetailStatusCode.NotRun;
+            var  a = "";
+            var m = "";
+            var result = EmoneyWalletHelper.SendingMoneyEMoneyWallet(requestModel.WalletId, requestModel.Amount, requestModel.Content, requestModel.Currency, requestModel.Option, requestModel.Pin, requestModel.ReceiverMsisdn, requestModel.Token, "", requestModel.DeviceId, json, ref m, ref statuscode , ref a);
+            return Ok( " a "+a  +"statuscode: " + statuscode   +"  m  "+ m);
 
             #endregion
 
 
             #region login 
-            var json = "{\"wallet_id\":\"0969059611\",\"app_language\":\"en\",\"app_version_string\":\"3.6.6\",\"app_version_code\":\"3.6.6\",\"device_id\":\"ed5cb220-a648-4dc9-b9f0-9b7f1ba61b06\",\"device_platform_name\":\"Android\",\"device_platform_os_version\":\"13\",\"device_brand_name\":\"Pixel\",\"device_name\":\"sdk_gphone_x86_64\"}";
-            var result = EmoneyWalletHelper.LoginEmoneyWalletWithId(requestModel.WalletId, requestModel.Pin, requestModel.Token, "", requestModel.DeviceId, json);
+            /*
+            var json = "{\"wallet_id\":\"0969059611\",\"app_language\":\"en\",\"app_version_string\":\"3.6.6\",\"app_version_code\":\"3.6.6\",\"device_id\":\"79459a8e-92aa-465e-adb1-e9cccf4c0466\",\"device_platform_name\":\"Android\",\"device_platform_os_version\":\"13\",\"device_brand_name\":\"Pixel\",\"device_name\":\"sdk_gphone_x86_64\"}";
+            var result = EmoneyWalletHelper.LoginEmoneyWalletWithId(requestModel.WalletId, requestModel.Pin, requestModel.Otp, requestModel.Token, "", requestModel.DeviceId, json);
+            if(result == null)
+            {
+                var getOtp  = EmoneyWalletHelper.RequestOtp(requestModel.WalletId, requestModel.Token, "", requestModel.DeviceId, json);
+               
+            }
             return Ok(result);
+            */
             #endregion
 
         }
