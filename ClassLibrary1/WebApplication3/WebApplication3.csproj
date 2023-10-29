@@ -43,6 +43,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
@@ -90,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Global.asax" />
+    <Content Include="Logger\Logger.csproj" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -100,6 +104,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Logger\CommonLogger.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="Models\RequestModel.cs" />
     <Compile Include="Models\WalletBalanceWithIdModel.cs" />
@@ -121,10 +126,14 @@
     <Compile Include="MyUtility\ValidatorModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WalletEnum\WHelperStatusCode.cs" />
+    <Compile Include="WalletHelper\DoBlockEmoneyHelper.cs" />
     <Compile Include="WalletHelper\EmoneyHelper.cs" />
     <Compile Include="WalletHelper\EmoneyWalletHelper.cs" />
+    <Compile Include="WalletHelper\FileHelper.cs" />
+    <Compile Include="WalletHelper\Logger.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Logger\packages.config" />
     <None Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

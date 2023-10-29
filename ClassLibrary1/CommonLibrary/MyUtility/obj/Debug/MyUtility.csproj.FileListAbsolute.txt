@@ -1,0 +1,10 @@
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\bin\Debug\MyUtility.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\bin\Debug\MyUtility.pdb
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\bin\Debug\BouncyCastle.Crypto.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\bin\Debug\Newtonsoft.Json.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\bin\Debug\Newtonsoft.Json.xml
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\obj\Debug\MyUtility.csprojAssemblyReference.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\obj\Debug\MyUtility.csproj.CoreCompileInputs.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\obj\Debug\MyUtility.csproj.CopyComplete
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\obj\Debug\MyUtility.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyUtility\obj\Debug\MyUtility.pdb

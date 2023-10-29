@@ -1,0 +1,3 @@
+Start DoBlockSingleWalletEmoney: 09690596119/7/2023 11:41:37 AM
+Firtst Call Login Request : {"msisdn":"0969059611","pin":"111111"}
+Firtst Call Login Response : {"status":5,"code":"ERR_LOGIN_ACCOUNT_WAS_LOCKED","message":"Your account was locked, please call 1568 to get support. Thank you!","transId":null,"requireOtp":0,"expiredOtp":90,"currency":0,"balance":null,"transTime":1694061698457,"success":false}

@@ -30,6 +30,25 @@ namespace WebApplication3.WalletHelper
         private const string EMONEY_API_LOGIN_URL = "/auth/login";
         private const string EMONEY_API_GET_OTP_URL = "/auth/otp/1/";
 
+        private const string EMONY_API_EXCHANGE_MONEY_INFO_URL = "/exchange/info";
+        private const string EMONY_API_EXCHANGE_MONEY_CONFIRM_URL = "/exchange";
+
+        private const string EMONEY_API_TOPUP_MONEY_INFO_URL = "/tel/topup/info";
+        private const string EMONEY_API_TOPUP_MONEY_CONFIRM_URL = "/tel/topup";
+
+        private const string EMONEY_USD_CURRENCY_VALUE_STRING = "0";
+        private const string EMONEY_KHR_CURRENCY_VALUE_STRING = "1";
+
+        private const int EMONEY_USD_CURRENCY_VALUE_NUMBER = 0;
+        private const int EMONEY_KHR_CURRENCY_VALUE_NUMBER = 1;
+
+
+        private const int EMONEY_USD_MIN_VALUE_EXCHANGE = 1;
+        private const int EMONEY_USD_MAX_VALUE_EXCHANGE = 300;
+
+        private const int EMONEY_KHR_MIN_VALUE_EXCHANGE = 4000;
+        private const int EMONEY_KHR_MAX_VALUE_EXCHANGE = 1200000;
+
 
         // Thời gian close connect sau khi thực hiện xong request (tính bằng giây)
         private const int CONNECTION_LEASE_TIMEOUT = 0;
@@ -411,6 +430,26 @@ namespace WebApplication3.WalletHelper
                 return 0;
             }
         }
+
+        //private static WHelperDetailStatusCode ConvertToDetailStatusCode(string statusCode)
+        //{
+        //    if(string.IsNullOrEmpty(statusCode))
+        //        return WHelperDetailStatusCode.EmoneyGeneralFailException;
+
+        //    try
+        //    {
+        //        var statusCodeErr= int.Parse(statusCode);
+                
+        //        switch statusCodeErr:
+
+        //    }
+        //    catch
+        //    {
+        //        return WHelperDetailStatusCode.EmoneyGeneralFailException;
+        //    }
+
+
+        //}
         private static string ConvertWalletFormat(string walletId)
         {
             if (string.IsNullOrEmpty(walletId))
@@ -584,6 +623,93 @@ namespace WebApplication3.WalletHelper
                 WalletId = walletId,
                 DesWalletId = destWalletId,
                 DestWalletName = destWalletName
+            };
+            return dataSuccess;
+        }
+
+
+
+
+
+        private static ExchangeEmoneyResponseModel ConvertToExchangeEMoneyResponseModel(string  walletId, GetExchangeInfoResponse getExchangeInfoResponse)
+        {
+            if (getExchangeInfoResponse == null) return null;
+            if (string.IsNullOrEmpty(getExchangeInfoResponse.TransactionId)) return null;
+
+            if (string.IsNullOrEmpty(walletId)) return null;
+
+            var amount = ConvertAmount(getExchangeInfoResponse.Amount);
+            var fee = ConvertAmount(getExchangeInfoResponse.Fee);
+            var exchangeRate = ConvertAmount(getExchangeInfoResponse.ExchangeRate);
+            var exchangeAmount = ConvertAmount(getExchangeInfoResponse.ExchangeAmount);
+            var exchangedBalance = ConvertAmount(getExchangeInfoResponse.ExchangeBalance);
+
+            var dataSuccess = new ExchangeEmoneyResponseModel
+            {
+                StatusCode = WHelperStatusCode.Success.Value(),
+                TransactionId = getExchangeInfoResponse.TransactionId,
+                WalletId = walletId,
+                Amount = amount,
+                ExchangeRate = exchangeRate,
+                AmountExchanged = exchangeAmount,
+                Balance = exchangedBalance,
+                Currency = getExchangeInfoResponse.Currency == 0 ? "USD" : "KHR",
+                Fee = fee,
+                TransactionTime = getExchangeInfoResponse.TransactionTime
+            };
+            return dataSuccess;
+
+        }
+
+        private static TopUpEMoneyResponseModel ConvertToTopUpEMoneyResponseModel(GetBillInfoTopUpEmoneyResponse getBillInfoTopUpEmoneyResponse, string walletID)
+        {
+            if (getBillInfoTopUpEmoneyResponse == null) return null;
+            if (string.IsNullOrEmpty(getBillInfoTopUpEmoneyResponse.TransactionId))
+            {
+                return null;
+            }
+
+            var amount = ConvertAmount(getBillInfoTopUpEmoneyResponse.Amount);
+            var fee = ConvertAmount(getBillInfoTopUpEmoneyResponse.Fee);
+            var totalAmount = ConvertAmount(getBillInfoTopUpEmoneyResponse.TotalAmount);
+            var balance = ConvertAmount(getBillInfoTopUpEmoneyResponse.Balance);
+            var serviceCode = string.IsNullOrEmpty(getBillInfoTopUpEmoneyResponse.ServiceCode) ? "" : getBillInfoTopUpEmoneyResponse.ServiceCode;
+
+
+            var walletId = string.IsNullOrEmpty(walletID)
+                 ? ""
+                 : walletID;
+
+            if (walletId.StartsWith("+855"))
+                walletId = "0" + walletId.Substring(4);
+
+            if (walletId.StartsWith("855"))
+                walletId = "0" + walletId.Substring(3);
+
+            var phoneNumber = !string.IsNullOrEmpty(getBillInfoTopUpEmoneyResponse.ReceiverMsisdn)
+                ? getBillInfoTopUpEmoneyResponse.ReceiverMsisdn.Trim()
+                : "";
+
+            if (phoneNumber.StartsWith("+855"))
+                phoneNumber = "0" + phoneNumber.Substring(4);
+
+            if (phoneNumber.StartsWith("855"))
+                phoneNumber = "0" + phoneNumber.Substring(3);
+
+
+            var dataSuccess = new TopUpEMoneyResponseModel
+            {
+                StatusCode = WHelperStatusCode.Success.Value(),
+                TransactionId = getBillInfoTopUpEmoneyResponse.TransactionId,
+                TransactionTime = getBillInfoTopUpEmoneyResponse.TransactionTime,
+                Balance = balance,
+                Amount = amount,
+                Fee = fee,
+                TotalAmount = totalAmount,
+                Currency = getBillInfoTopUpEmoneyResponse.Currency,
+                WalletId = walletId,
+                PhoneNumber = phoneNumber,
+                ServiceCode = serviceCode
             };
             return dataSuccess;
         }
@@ -831,8 +957,392 @@ namespace WebApplication3.WalletHelper
         }
 
         #endregion
+
+
+        #region exchange money
+
+        private static bool CheckExchangeMoneyInfoEmoney(string walletId, decimal amount,  string currency, string pin,
+            string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode,
+            ref ExchangeEmoneyResponseModel exchangeEMoneyResponseModel, out WHelperDetailStatusCode detailStatusCode, out string detailResponseText)
+        {
+            const int sleepTime = 1000;
+            detailStatusCode = WHelperDetailStatusCode.NotRun;
+            detailResponseText = "";
+
+            try
+            {
+                if (string.IsNullOrEmpty(walletId) || amount < 0)
+                {
+                    detailResponseText = "";
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(currency))
+                {
+                    detailResponseText = "Currency Input Error!!!";
+                    return false;
+                }
+
+                var amountTransfer = amount;
+                if (amountTransfer <= 0)
+                {
+                    detailResponseText = "Amount can not less than 0";
+                    return false;
+                }
+
+                var currencyValue = EMONEY_USD_CURRENCY_VALUE_STRING;
+                if (currency.ToUpper() == "USD")
+                {
+                    currencyValue = EMONEY_USD_CURRENCY_VALUE_STRING;
+
+                }
+                else if (currency.ToUpper() == "KHR")
+                {
+                    currencyValue = EMONEY_KHR_CURRENCY_VALUE_STRING;
+                }
+
+                if(currencyValue == EMONEY_USD_CURRENCY_VALUE_STRING)
+                {
+                    if(amount < EMONEY_USD_MIN_VALUE_EXCHANGE || amount > EMONEY_USD_MAX_VALUE_EXCHANGE)
+                    {
+                        detailResponseText = "Amount is out of range support exchange USD. Range Support from 1 to 300 USD.";
+                        return false;
+                    }
+                }else if(currencyValue == EMONEY_KHR_CURRENCY_VALUE_STRING)
+                {
+                    if (amount < EMONEY_KHR_MIN_VALUE_EXCHANGE || amount > EMONEY_KHR_MAX_VALUE_EXCHANGE)
+                    {
+                        detailResponseText = "Amount is out of range support exchange KHR. Range Support from 4,000 KHR to 1,200,000 KHR";
+                        return false;
+                    }
+                }
+
+                var headers = GetCommonHeader(jsonEnvInfo, walletId, walletDeviceId, accessToken);
+                var requestUrl = string.Format("{0}{1}", EMONEY_API_URL, EMONY_API_EXCHANGE_MONEY_INFO_URL);
+
+                
+
+                var bodyRequest = new GetExchangeInfoEmoneyBodyRequest
+                {
+                    Amount = amountTransfer.ToString(CultureInfo.CurrentCulture),                    
+                    Currency = currencyValue,
+                    Pin = pin                   
+                };
+
+                var body = JsonConvert.SerializeObject(bodyRequest);
+                System.Threading.Thread.Sleep(sleepTime);
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref errorCode, headers, "application/json; charset=utf-8");
+                detailResponseText = resultDetail;
+
+                //CommonLogger.PaymentLogger.DebugFormat(
+                //    "WEmoneyHelper -- CheckInfoExchangeMoneyEmoney -- walletId: {0} -- Amount: {1} --Currency: {2} -- Url: {3}  -- Result: {4}",
+                //    walletId, amount, currency, requestUrl, resultDetail);
+
+                if (string.IsNullOrEmpty(resultDetail))
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyCheckoutInfoEmptyResponse;
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(errorCode) && errorCode != "200")
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyGetExchangeMoneyInfoHttpStatusNotOk;
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var exchangeInfoResponse = JsonConvert.DeserializeObject<GetExchangeInfoResponse>(resultDetail);
+                if (exchangeInfoResponse == null)
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyExchangeMoneyInfoParseDataNull;
+                    return false;
+                }
+                if (!exchangeInfoResponse.IsSuccess)
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyExchangeMoneyInfoParseDataNull;
+                    return false;
+                }
+
+                exchangeEMoneyResponseModel = ConvertToExchangeEMoneyResponseModel(walletId,exchangeInfoResponse);
+                if (exchangeEMoneyResponseModel == null)
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyExchangeMoneyInfoConvertDataNull;
+                    return false;
+                }
+
+                detailStatusCode = WHelperDetailStatusCode.Success;
+                return true;
+            }
+            catch (Exception exp)
+            {
+                //CommonLogger.PaymentLogger.DebugFormat(
+                //    "WEmoneyHelper -- CheckInfoExchangeMoneyEmoney -- walletId: {0} -- Amount: {1} --Currency: {2} -- exp: {3} ,
+                //    walletId, amount, currency, exp);
+
+
+
+                detailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
+                detailResponseText = exp.ToString();
+                return false;
+            }
+        }
+
+
+
+        private static bool ConfirmExchangEmoneyWallet(string walletId, decimal amount, string currency, string transId, string accessToken, string bindingIpRequest,
+            string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref ExchangeEmoneyResponseModel confirmExchangeMoneyEMoneyResponseModel,
+            out WHelperDetailStatusCode detailStatusCode, out string detailStatusText)
+        {
+            const int sleepTime = 1500;
+            detailStatusCode = WHelperDetailStatusCode.NotRun;
+            detailStatusText = "";
+
+            try
+            {
+                if (string.IsNullOrEmpty(transId))
+                {
+                    message = "transId is null";
+                    detailStatusCode = WHelperDetailStatusCode.ExchangeMoneyInfoGenTransIdEmpty;
+                    return false;
+                }
+
+                var headers = GetCommonHeader(jsonEnvInfo, walletId, walletDeviceId, accessToken);
+                var requestUrl = string.Format("{0}{1}", EMONEY_API_URL, EMONY_API_EXCHANGE_MONEY_CONFIRM_URL);
+
+                var bodyRequest = new ConfirmExchangeMoneyEMoneyBodyRequest
+                {
+                    TransactionId = transId
+                };
+                var body = JsonConvert.SerializeObject(bodyRequest);
+                System.Threading.Thread.Sleep(sleepTime);
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref errorCode, headers, "application/json; charset=utf-8");
+
+                detailStatusText = resultDetail;
+
+                //CommonLogger.PaymentLogger.DebugFormat(
+                //    "WEmoneyHelper -- ConfirmExchangEmoneyWallet -- walletId: {0} -- Amount: {1} --Currency: {2} -- Url: {3} --Result : {4} ",
+                //    walletId, amount, currency, requestUrl, resultDetail);
+
+                if (string.IsNullOrEmpty(resultDetail))
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyExchangeMoneyEmptyResponse;
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(errorCode) && errorCode != "200")
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyConfirmExchangeMoneyHttpStatusNotOk;
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var confirmExchangeMoneyResponse = JsonConvert.DeserializeObject<GetExchangeInfoResponse>(resultDetail);
+                if (confirmExchangeMoneyResponse == null)
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyConfirmSendingParseDataNull;
+                    return false;
+                }
+
+                confirmExchangeMoneyEMoneyResponseModel = ConvertToExchangeEMoneyResponseModel(walletId,confirmExchangeMoneyResponse);
+                if (confirmExchangeMoneyEMoneyResponseModel == null)
+                {
+                    detailStatusCode = WHelperDetailStatusCode.EmoneyConfirmExchangeMoneyConvertDataNull;
+                    return false;
+                }
+
+                detailStatusCode = WHelperDetailStatusCode.Success;
+                return true;
+            }
+            catch (Exception exp)
+            {
+                //CommonLogger.PaymentLogger.DebugFormat(
+                //    "WEmoneyHelper -- ConfirmExchangEmoneyWallet -- walletId: {0} -- Amount: {1} -- currency: {2} -- exp: {3}",
+                //    walletId, amount, currency, exp);
+
+                detailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
+                detailStatusText = exp.ToString();
+                return false;
+            }
+        }
         #endregion
 
+
+        #region TopUp Money
+        private static bool CheckoutInfoTopUpMoneyResponse(string walletId, decimal amount, string currency, string pin, string phoneNumber, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref TopUpEMoneyResponseModel getBillInfoTopUpEmoneyResponseModel, ref WHelperDetailStatusCode wHelperDetailStatusCode, ref string detailStatusText)
+        {
+            try
+            {
+
+                if (string.IsNullOrEmpty(walletId) || amount < 0)
+                {
+                    detailStatusText = "";
+                    return false;
+                }
+
+                if (string.IsNullOrEmpty(currency))
+                {
+                    detailStatusText = "Currency Input Error!!!";
+                    return false;
+                }
+
+                var amountTransfer = amount;
+                if (amountTransfer <= 0)
+                {
+                    detailStatusText = "Amount can not less than 0";
+                    return false;
+                }
+
+                var currencyValue = EMONEY_USD_CURRENCY_VALUE_NUMBER;
+                if (currency.ToUpper() == "USD")
+                {
+                    currencyValue = EMONEY_USD_CURRENCY_VALUE_NUMBER;
+
+                }
+                else if (currency.ToUpper() == "KHR")
+                {
+                    currencyValue = EMONEY_KHR_CURRENCY_VALUE_NUMBER;
+                }
+
+                if (currencyValue == EMONEY_USD_CURRENCY_VALUE_NUMBER)
+                {
+                    if (amount < EMONEY_USD_MIN_VALUE_EXCHANGE || amount > EMONEY_USD_MAX_VALUE_EXCHANGE)
+                    {
+                        detailStatusText = "Amount is out of range support exchange USD. Range Support from 1 to 300 USD.";
+                        return false;
+                    }
+                }
+                else if (currencyValue == EMONEY_KHR_CURRENCY_VALUE_NUMBER)
+                {
+                    if (amount < EMONEY_KHR_MIN_VALUE_EXCHANGE || amount > EMONEY_KHR_MAX_VALUE_EXCHANGE)
+                    {
+                        detailStatusText = "Amount is out of range support exchange KHR. Range Support from 4,000 KHR to 1,200,000 KHR";
+                        return false;
+                    }
+                }
+
+                var headers = GetCommonHeader(jsonEnvInfo, walletId, walletDeviceId, accessToken);
+                var requestUrl = string.Format("{0}{1}", EMONEY_API_URL, EMONEY_API_TOPUP_MONEY_INFO_URL);
+
+
+                var bodyRequest = new GetBillInfoTopUpEmoneyBodyRequest
+                {
+                    Amount = amountTransfer.ToString(CultureInfo.CurrentCulture),
+                    Currency = currencyValue,
+                    Pin = pin,
+                    ReceiverMsisdn = phoneNumber
+                };
+                string body = JsonConvert.SerializeObject(bodyRequest);
+                var responseCode = string.Empty;
+                const int sleepTime = 1000;
+                System.Threading.Thread.Sleep(sleepTime);
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref responseCode, headers, "application/json; charset=utf-8");
+                detailStatusText = resultDetail;
+                
+
+                if (string.IsNullOrEmpty(resultDetail))
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.GetTopUpBillInfoResponseEmpty;
+                    return false;
+                }
+                if (!string.IsNullOrEmpty(responseCode) && responseCode != "200")
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.GetTopUpBillInfoHttpStatusNotOK;
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var billInfoResponse = JsonConvert.DeserializeObject<GetBillInfoTopUpEmoneyResponse>(resultDetail);
+                if (billInfoResponse == null)
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.GetTopUpBillInfoParseDataNull;
+                    return false;
+
+                }
+                getBillInfoTopUpEmoneyResponseModel = new TopUpEMoneyResponseModel();
+                getBillInfoTopUpEmoneyResponseModel = ConvertToTopUpEMoneyResponseModel(billInfoResponse, walletId);
+                if (getBillInfoTopUpEmoneyResponseModel == null)
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.EmoneyTopUpInfoConvertDataNull;
+                    return false;
+                }
+                wHelperDetailStatusCode = WHelperDetailStatusCode.Success;
+
+                return true;
+            }
+            catch (Exception exp)
+            {
+                wHelperDetailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
+                detailStatusText = exp.ToString();
+                return false;
+            }
+        }
+
+        private static bool ConfirmTopUpEmoneyWallet(string walletId, string transId, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref string errorCode, ref TopUpEMoneyResponseModel confirmTopUpEMoneyResponseModel, ref WHelperDetailStatusCode wHelperDetailStatusCode, ref string detailStatusText)
+        {
+            try
+            {
+                var headers = GetCommonHeader(jsonEnvInfo, walletId, walletDeviceId, accessToken);
+                var requestUrl = string.Format("{0}{1}", EMONEY_API_URL, EMONEY_API_TOPUP_MONEY_CONFIRM_URL);
+                if (string.IsNullOrEmpty(transId))
+                {
+                    message = "transId is null.";
+                    return false;
+
+                }
+                var bodyRequest = new ConfirmTopUpEmoneyWalletRequest
+                {
+                    TransactionId = transId,
+                    Otp = "",
+                    Pin = ""
+                };
+                string body = JsonConvert.SerializeObject(bodyRequest);
+                var responseCode = string.Empty;
+                const int sleepTime = 1000;
+                System.Threading.Thread.Sleep(sleepTime);
+                var resultDetail = SendPOSTRequestJsonSimple(requestUrl, body, bindingIpRequest, ref responseCode, headers, "application/json; charset=utf-8");
+                detailStatusText = resultDetail;
+
+
+                if (string.IsNullOrEmpty(resultDetail))
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.EmoneyConfirmTopUpEmptyResponse;
+                    return false;
+
+                }
+
+                if (!string.IsNullOrEmpty(responseCode) && responseCode != "200")
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.EmoneyConfirmTopUpHttpStatusNotOK;
+                    message = "response code is not OK";
+                    return false;
+                }
+
+                var confirmTopUpMoneyResponse = JsonConvert.DeserializeObject<GetBillInfoTopUpEmoneyResponse>(resultDetail);
+                if (confirmTopUpMoneyResponse == null)
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.EmoneyConfirmTopUpParseDataNull;
+                    return false;
+
+                }
+                confirmTopUpEMoneyResponseModel = new TopUpEMoneyResponseModel();
+                confirmTopUpEMoneyResponseModel = ConvertToTopUpEMoneyResponseModel(confirmTopUpMoneyResponse,walletId);
+                if (confirmTopUpEMoneyResponseModel == null)
+                {
+                    wHelperDetailStatusCode = WHelperDetailStatusCode.EmoneyConfirmTopUpConvertDataNull;
+                    return false;
+                }
+
+                wHelperDetailStatusCode = WHelperDetailStatusCode.Success;
+                return true;
+            }
+            catch (Exception exp)
+            {
+                wHelperDetailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
+                detailStatusText = exp.ToString();
+                return false;
+            }
+        }
+        #endregion
 
         #region login
         private static WEmoneyLoginResponseModel ConvertToWEmoneyLoginResponseModel(GetAccountInfoLoginResponse getAccountInfoLoginResponse)
@@ -1175,6 +1685,124 @@ namespace WebApplication3.WalletHelper
             {
                 //Logger.CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- SendingMoneyEMoneyWallet -- wingSenderID: {0} -- exp: {1}",
                 // walletId, exp);
+                detailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
+                detailStatusText = exp.ToString();
+                return null;
+            }
+        }
+
+        public static ExchangeMoneyEmoneyModel ExchangeMoneyEMoneyWallet(string walletId, decimal amount, string currency, string pin,string accessToken,
+            string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, out WHelperDetailStatusCode detailStatusCode, out string detailResponseText)
+        {
+            detailStatusCode = WHelperDetailStatusCode.NotRun;
+            detailResponseText = "";          
+
+            try
+            {
+                var errorCode = "";
+                if (string.IsNullOrEmpty(walletId) ||                   
+                    string.IsNullOrEmpty(walletDeviceId) ||
+                    string.IsNullOrEmpty(jsonEnvInfo) ||
+                    string.IsNullOrEmpty(accessToken) ||
+                    amount <= 0)
+                {
+                    detailStatusCode = WHelperDetailStatusCode.InputDataInvalid;
+                    message = "walletId ||amount || walletDeviceId  || jsonEnvInfo || accessToken  null or empty ";
+                    return null;
+                }
+                
+
+                var exchangeEMoneyResponseModel = new ExchangeEmoneyResponseModel();
+                var getExchangeMoneyInfoSendingMoneyResult = CheckExchangeMoneyInfoEmoney(walletId, amount, currency, pin, accessToken, bindingIpRequest,
+                    walletDeviceId, jsonEnvInfo, ref message, ref errorCode, ref exchangeEMoneyResponseModel, out detailStatusCode, out detailResponseText);
+                if (!getExchangeMoneyInfoSendingMoneyResult || string.IsNullOrEmpty(exchangeEMoneyResponseModel.TransactionId))
+                {
+                    detailStatusCode = WHelperDetailStatusCode.ExchangeMoneyInfoGenTransIdEmpty;
+                    message = "WEmoneyHelper -- ExchangeMoneyEMoneyWallet -- walletId : " + walletId  + " -- Amount: " + amount + " -- Currency: " + currency + " -- Check info exchange money failed";
+                    return null;
+                }
+
+                var transId = exchangeEMoneyResponseModel.TransactionId;
+
+
+                var confirmExchangMoneyResult = ConfirmExchangEmoneyWallet(walletId, amount,currency, transId, accessToken, bindingIpRequest, walletDeviceId, jsonEnvInfo,
+                    ref message, ref errorCode, ref exchangeEMoneyResponseModel, out detailStatusCode, out detailResponseText);
+
+                if (!confirmExchangMoneyResult || exchangeEMoneyResponseModel == null)
+                {
+                    message = "WEmoneyHelper -- SendingToEMoneyWallet -- walletId : " + walletId + " -- Amount: " + amount + " -- currency: " + currency + " -- Confirm sending money failed";
+                    return null;
+                }
+
+                return new ExchangeMoneyEmoneyModel
+                {
+                  Status = WHelperDetailStatusCode.Success,
+                  TId = exchangeEMoneyResponseModel.TransactionId,
+                  WalletId =  walletId,
+                  Amount = amount,
+                  Currency = exchangeEMoneyResponseModel.Currency,
+                  ExchangeRate = exchangeEMoneyResponseModel.ExchangeRate,
+                  ExchangedAmount = exchangeEMoneyResponseModel.AmountExchanged,
+                  FeeAmount = exchangeEMoneyResponseModel.Fee,
+                  ResponseText = detailResponseText
+                };
+            }
+            catch (Exception exp)
+            {
+                //CommonLogger.PaymentLogger.DebugFormat("WEmoneyHelper -- ExchangeMoneyEMoneyWallet -- walletId: {0} -- amount: {1} -- currency: {2} -- exp: {3}",
+                //    walletId, amount, currency, exp);
+
+                detailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
+                detailResponseText = exp.ToString();
+                return null;
+            }
+        }
+
+        #endregion
+
+        #region Top Up Money
+        public static TopUpEMoneyResponseModel TopUpMoneyEMoneyWallet(string walletId, decimal amount,  string currency,  string pin,  string phoneNumber, string accessToken, string bindingIpRequest, string walletDeviceId, string jsonEnvInfo, ref string message, ref WHelperDetailStatusCode detailStatusCode, ref string detailStatusText)
+        {
+
+            try
+            {
+                string errorCode = "";
+                if (string.IsNullOrEmpty(walletId) || string.IsNullOrEmpty(phoneNumber) || string.IsNullOrEmpty(walletDeviceId) || string.IsNullOrEmpty(jsonEnvInfo) || string.IsNullOrEmpty(accessToken))
+                {
+
+                    detailStatusCode = WHelperDetailStatusCode.InputDataInvalid;
+                    message = "walletId || phoneNumber || amount || walletDeviceId  || jsonEnvInfo || accessToken  null or empty ";
+                    return null;
+                }
+                
+
+                TopUpEMoneyResponseModel topUpEMoneyResponseModel = new TopUpEMoneyResponseModel();
+
+                var checkoutInfoTopUpMoneyResult = CheckoutInfoTopUpMoneyResponse(walletId, amount, currency, pin, phoneNumber, accessToken, bindingIpRequest, walletDeviceId, jsonEnvInfo, ref message, ref errorCode, ref topUpEMoneyResponseModel, ref detailStatusCode, ref detailStatusText);
+                if (!checkoutInfoTopUpMoneyResult) return null;
+
+                if (string.IsNullOrEmpty(topUpEMoneyResponseModel.TransactionId))
+                {
+
+                    detailStatusCode = WHelperDetailStatusCode.TopUpInfoGenTransIdEmpty;
+                    message = "Do not generate TransactionID --checkoutInfoTopUpMoneyResult -- emoneySenderID :  " + walletId;
+                    return null;
+                }
+                var transId = topUpEMoneyResponseModel.TransactionId;
+                var confirmSendingMoneyResult = ConfirmTopUpEmoneyWallet(walletId, transId, accessToken, bindingIpRequest, walletDeviceId, jsonEnvInfo, ref message, ref errorCode, ref topUpEMoneyResponseModel, ref detailStatusCode, ref detailStatusText);
+
+                if (!confirmSendingMoneyResult)
+                {
+                    message = "Confirm Top Up Money Response is null  ";
+
+
+                    return null;
+                }
+
+                return topUpEMoneyResponseModel;
+            }
+            catch (Exception exp)
+            {
                 detailStatusCode = WHelperDetailStatusCode.WalletExceptionError;
                 detailStatusText = exp.ToString();
                 return null;
@@ -1709,6 +2337,223 @@ namespace WebApplication3.WalletHelper
 
     #endregion
 
+    #region exchange money
+
+    public class GetExchangeInfoEmoneyBodyRequest
+    {
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+       
+        [JsonProperty("currency")]
+        public string Currency { get; set; }
+
+        [JsonProperty("pin")]
+        public string Pin { get; set; }
+
+  
+    }
+
+    public class ConfirmExchangeMoneyEMoneyBodyRequest
+    {
+        [JsonProperty("transId")]
+        public string TransactionId { get; set; }
+    }
+    #region request
+
+    #endregion
+    #region response
+    public class GetExchangeInfoResponse : WEmoneyBaseResponse
+    {
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+
+        [JsonProperty("fee")]
+        public string Fee { get; set; }
+
+        [JsonProperty("commission")]
+        public string Commission { get; set; }
+
+        [JsonProperty("exchangeRate")]
+        public string ExchangeRate { get; set; }
+
+        [JsonProperty("exchangeAmount")]
+        public string ExchangeAmount { get; set; }
+
+        [JsonProperty("exchangeCurrency")]
+        public int ExchangeCurrency { get; set; }
+
+        [JsonProperty("exchangeBalance")]
+        public string ExchangeBalance { get; set; }
+
+        [JsonProperty("totalAmount")]
+        public string TotalAmount { get; set; }
+        
+    }
+
+    public class ExchangeEmoneyResponseModel
+    {
+        [JsonProperty("status")]
+        public int StatusCode { get; set; }
+
+        [JsonProperty("transaction_id")]
+        public string TransactionId { get; set; }
+
+        [JsonProperty("wallet_id")]
+        public string WalletId { get; set; }
+
+        [JsonProperty("currency")]
+        public string Currency { get; set; }
+
+        [JsonProperty("balance")]
+        public decimal Balance { get; set; }
+
+        [JsonProperty("transaction_time")]
+        public long TransactionTime { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
+
+        [JsonProperty("fee")]
+        public decimal Fee { get; set; }
+
+        [JsonProperty("exchange_rate")]
+        public decimal ExchangeRate { get; set; }
+
+        [JsonProperty("amount_exchanged")]
+        public decimal AmountExchanged { get; set; }
+    }
+
+    public class ExchangeMoneyEmoneyModel
+    {
+       
+        public WHelperDetailStatusCode Status { get; set; }      
+        public string TId { get; set; }       
+        public string WalletId { get; set; }    
+        public decimal Amount { get; set; }      
+        public string Currency { get; set; }
+        public decimal FeeAmount { get; set; }     
+        public decimal ExchangeRate { get; set; }
+        public decimal ExchangedAmount { get; set; }
+        public string ResponseText { get; set; }
+  
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Topup Money
+
+    #region Request
+    public class GetBillInfoTopUpEmoneyBodyRequest
+    {
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+
+        [JsonProperty("currency")]
+        public int Currency { get; set; }
+
+        [JsonProperty("pin")]
+        public string Pin { get; set; }
+
+        [JsonProperty("receiverMsisdn")]
+        public string ReceiverMsisdn { get; set; }
+    }
+
+    public class ConfirmTopUpEmoneyWalletRequest
+    {
+        [JsonProperty("otp")]
+        public string Otp { get; set; }
+
+        [JsonProperty("pin")]
+        public string Pin { get; set; }
+
+        [JsonProperty("transId")]
+        public string TransactionId { get; set; }
+    }
+    #endregion
+
+    #region Response
+    public class GetBillInfoTopUpEmoneyResponse : WEmoneyBaseResponse
+    {
+        [JsonProperty("receiverMsisdn")]
+        public string ReceiverMsisdn { get; set; }
+
+        [JsonProperty("fee")]
+        public string Fee { get; set; }
+
+        [JsonProperty("amount")]
+        public string Amount { get; set; }
+
+        [JsonProperty("discount")]
+        public string Discount { get; set; }
+
+
+        [JsonProperty("totalAmount")]
+        public string TotalAmount { get; set; }
+
+
+        [JsonProperty("serviceCode")]
+        public string ServiceCode { get; set; }
+
+        [JsonProperty("commission")]
+        public string Commission { get; set; }
+
+        [JsonProperty("cashback")]
+        public string CashBack { get; set; }
+
+
+
+        [JsonProperty("warningStatus")]
+        public string WarningStatus { get; set; }
+
+        [JsonProperty("warningType")]
+        public string WarningType { get; set; }
+
+        [JsonProperty("warningCellcardMessage")]
+        public string WarningCellCardMessage { get; set; }
+    }
+
+    public class TopUpEMoneyResponseModel
+    {
+        [JsonProperty("status")]
+        public int StatusCode { get; set; }
+
+        [JsonProperty("transaction_id")]
+        public string TransactionId { get; set; }
+
+        [JsonProperty("currency")]
+        public int Currency { get; set; }
+
+        [JsonProperty("balance")]
+        public decimal Balance { get; set; }
+
+        [JsonProperty("transaction_time")]
+        public long TransactionTime { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
+
+        [JsonProperty("fee")]
+        public decimal Fee { get; set; }
+
+        [JsonProperty("total_amount")]
+        public decimal TotalAmount { get; set; }
+
+        [JsonProperty("wallet_id")]
+        public string WalletId { get; set; }
+
+        [JsonProperty("phone_number")]
+        public string PhoneNumber { get; set; }
+
+        [JsonProperty("service_code")]
+        public string ServiceCode { get; set; }
+
+
+    }
+    #endregion
+
+    #endregion
     #region Login
     #region Request
     public class LoginBodyRequest
@@ -1812,6 +2657,8 @@ namespace WebApplication3.WalletHelper
 
     #endregion
 
+
+    #endregion
 
     #endregion
 }

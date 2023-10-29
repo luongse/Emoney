@@ -1,0 +1,9 @@
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\bin\Debug\OneSignalNotification.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\bin\Debug\OneSignalNotification.pdb
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\bin\Debug\Newtonsoft.Json.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\bin\Debug\Newtonsoft.Json.xml
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\obj\Debug\OneSignalNotification.csprojAssemblyReference.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\obj\Debug\OneSignalNotification.csproj.CoreCompileInputs.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\obj\Debug\OneSignalNotification.csproj.CopyComplete
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\obj\Debug\OneSignalNotification.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\OneSignalNotification\obj\Debug\OneSignalNotification.pdb

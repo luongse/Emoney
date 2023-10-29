@@ -32,4 +32,23 @@ namespace WebApplication3.Models
         public string TransId { get; set; }
       
     }
+
+    public class ApiExchangeMoney : RequestModel
+    {
+        public decimal Amount { get; set; }  
+        public string Currency { get; set; }
+        public string Pin { get; set; }
+    
+
+    }
+
+    public class ApiTopUpMoney : RequestModel
+    {
+        public decimal Amount { get; set; }
+        public string Currency { get; set; }
+        public string Pin { get; set; }
+        public string PhoneNumber { get; set; }
+
+
+    }
 }

@@ -297,3 +297,5 @@ E:\Emoney\Emoney\ClassLibrary1\WebApplication3\bin\System.Xml.XPath.dll
 E:\Emoney\Emoney\ClassLibrary1\WebApplication3\bin\System.Xml.XPath.XDocument.dll
 E:\Emoney\Emoney\ClassLibrary1\WebApplication3\bin\Logger.dll
 E:\Emoney\Emoney\ClassLibrary1\WebApplication3\bin\Logger.pdb
+D:\me\E\Emoney\ClassLibrary1\WebApplication3\bin\log4net.dll
+D:\me\E\Emoney\ClassLibrary1\WebApplication3\bin\log4net.xml

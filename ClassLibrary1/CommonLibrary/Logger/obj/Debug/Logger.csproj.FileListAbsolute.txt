@@ -1,0 +1,9 @@
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\bin\Debug\Logger.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\bin\Debug\Logger.pdb
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\bin\Debug\log4net.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\bin\Debug\log4net.xml
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\obj\Debug\Logger.csprojAssemblyReference.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\obj\Debug\Logger.csproj.CoreCompileInputs.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\obj\Debug\Logger.csproj.CopyComplete
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\obj\Debug\Logger.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\Logger\obj\Debug\Logger.pdb

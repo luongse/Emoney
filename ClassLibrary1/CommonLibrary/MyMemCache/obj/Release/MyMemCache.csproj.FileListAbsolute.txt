@@ -1,0 +1,6 @@
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyMemCache\bin\Release\MyMemCache.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyMemCache\bin\Release\MyMemCache.pdb
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyMemCache\obj\Release\MyMemCache.csprojAssemblyReference.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyMemCache\obj\Release\MyMemCache.csproj.CoreCompileInputs.cache
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyMemCache\obj\Release\MyMemCache.dll
+D:\projects\PaymentX\HWiki\Server\Framework\CommonLibrary\MyMemCache\obj\Release\MyMemCache.pdb
